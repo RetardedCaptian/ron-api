@@ -119,7 +119,7 @@ const uf = {
                             phoneNumber: body.phoneNumber,
                             aadharNumber: body.aadharNumber,
                             dateOfBirth: body.dob,
-                            isEmailVerified: false,
+                            isEmailVerified: true,
                             isPhoneVerified: false
                         });
                         console.log(newUser);
