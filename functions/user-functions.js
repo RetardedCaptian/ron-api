@@ -7,7 +7,6 @@ const Otp = require('../models/otp-model');
 const uf = {
     register: async (body) => {
         try {
-
             let user = await User.findOne({ email: body.email });
             if (!user) {
                 const string = String(body.aadharNumber);
@@ -15,20 +14,20 @@ const uf = {
 
                 let isValid = Validator.aadhaar(string);
                 if (isValid) {
-
-                    const newUser = new User({
-                        name: body.name,
-                        email: body.email,
-                        phoneNumber: body.phoneNumber,
-                        aadharNumber: body.aadharNumber,
-                        dateOfBirth: body.dob,
-                        isEmailVerified: false,
-                        isPhoneVerified: false
-                    });
+                    const data = await this.getEmailOtp(body.aadharNumber)
+                    // const newUser = new User({
+                    //     name: body.name,
+                    //     email: body.email,
+                    //     phoneNumber: body.phoneNumber,
+                    //     aadharNumber: body.aadharNumber,
+                    //     dateOfBirth: body.dob,
+                    //     isEmailVerified: false,
+                    //     isPhoneVerified: false
+                    // });
                     // console.log(newUser);
 
-                    await newUser.save(newUser);
-                    return { s: true, m: 'registered' }
+                    // await newUser.save(newUser);
+                    return data
                 }
 
             } else {
@@ -98,27 +97,37 @@ const uf = {
 
                 await isOtp.save()
             }
-
-
             return { s: true, m: 'otp sent' }
 
         } catch (error) {
             return { s: false, m: error.message }
         }
     },
-    verifyEmailOtp: async (otp, aadharNumber) => {
+    verifyEmailOtp: async (otp, body) => {
         try {
-            const otpDb =await Otp.findOne({ aadharNumber: aadharNumber })
+            const otpDb = await Otp.findOne({ aadharNumber: body.aadharNumber })
             if (otpDb) {
-                const date = new Date();                
+                const date = new Date();
                 if (date.getTime() <= otpDb.dateTime) {
                     const verifyOtp = (otp === otpDb.otp)
                     if (verifyOtp) {
                         await otpDb.deleteOne()
 
-                        return { s: true, m: 'otp verified' }
+                        const newUser = new User({
+                            name: body.name,
+                            email: body.email,
+                            phoneNumber: body.phoneNumber,
+                            aadharNumber: body.aadharNumber,
+                            dateOfBirth: body.dob,
+                            isEmailVerified: false,
+                            isPhoneVerified: false
+                        });
+                        console.log(newUser);
 
-                    }else{
+                        await newUser.save(newUser);
+                        return { s: true, m: 'registered' }
+
+                    } else {
                         return { s: true, m: 'wrong otp' }
 
                     }
